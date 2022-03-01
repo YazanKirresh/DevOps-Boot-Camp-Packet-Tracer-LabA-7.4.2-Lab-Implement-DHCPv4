@@ -1,0 +1,289 @@
+Part1:
+Step 1:
+
+58 Hosts --> 62 IP --> /26
+192.168.1.0/26
+255.255.255.192
+
+28 Hosts --> 32 IP --> /27
+192.168.1.64/27
+255.255.255.224
+
+12 Hosts --> 16 IP --> /28
+192.168.1.96/28
+255.255.255.240
+
+
+Part1:
+Step 3:
+
+R1:
+
+en
+conf t
+hostname R1
+no ip domain lookup
+enable secret class
+line console 0
+password cisco
+login
+exit
+line vty 0 4
+password cisco
+login
+exit
+service password-encryption
+banner motd $ Authorized Users Only! $
+end
+clock set 19:04:00 1 March 2022
+copy running-config startup-config
+
+
+R2:
+
+en
+conf t
+hostname R2
+no ip domain lookup
+enable secret class
+line console 0
+password cisco
+login
+exit
+line vty 0 4
+password cisco
+login
+exit
+service password-encryption
+banner motd $ Authorized Users Only! $
+end
+clock set 19:04:00 1 March 2022
+copy running-config startup-config
+
+Part1:
+Step 4:
+R1:
+
+int g0/0/1
+no shut
+exit
+
+int g0/0/1.100
+encapsulation dot1q 100
+ip address 192.168.1.1 255.255.255.192
+description first
+exit
+
+int g0/0/1.200
+encapsulation dot1q 200
+ip address 192.168.1.65 255.255.255.224
+description second
+exit
+
+int g0/0/1.1000
+encapsulation dot1q 1000 nativ
+description third
+exit
+
+
+Part1:
+Step 5:
+
+R2:
+
+en
+conf t
+int g0/0/1
+ip address 192.168.1.97 255.255.255.240
+no shut
+exit
+int g0/0/0
+ip address 10.0.0.2 255.255.255.252
+no shut
+exit
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+exit
+copy running-config startup-config
+
+R1:
+
+en
+conf t
+int g0/0/0
+ip address 10.0.0.1 255.255.255.252
+no shut
+exit
+ip route 0.0.0.0 0.0.0.0 10.0.0.2
+exit
+copy running-config startup-config
+
+
+
+Part1:
+Step 6:
+
+S1:
+en
+conf t
+hostname S1
+no ip domain-lookup
+enable secret class
+line console 0
+password cisco
+login
+exit
+line vty 0 15
+password cisco
+login
+exit
+service password-encryption
+banner motd $ Authorized Users Only! $
+end
+copy running-config startup-config
+
+S2:
+en
+conf t
+hostname S2
+no ip domain-lookup
+enable secret class
+line console 0
+password cisco
+login
+exit
+line vty 0 15
+password cisco
+login
+exit
+service password-encryption
+banner motd $ Authorized Users Only! $
+end
+copy running-config startup-config
+
+
+
+Part1:
+Step 7:
+
+S1:
+vlan 100
+name Clients
+exit
+vlan 200
+name Management
+exit
+vlan 999
+name Parking_Lot
+exit
+vlan 1000
+name Native
+exit
+
+int vlan 200
+ip address 192.168.1.66 255.255.255.224
+no shut
+exit
+ip default-gateway 192.168.1.65
+
+int range f0/1 -4
+switchport mode access
+switchport access vlan 999
+shutdown
+exit
+
+int range f0/7 -24
+switchport mode access
+switchport access vlan 999
+shutdown
+exit
+
+int range g0/1 -2
+switchport mode access
+switchport access vlan 999
+shutdown
+exit
+
+
+S2:
+int vlan 1
+ip address 192.168.1.98 255.255.255.240
+no shut
+exit
+ip default-gateway 192.168.1.97
+
+int range f0/1 -4
+switchport mode access
+shutdown
+exit
+
+int range f0/6 -17
+switchport mode access
+shutdown
+exit
+
+int range f0/19 -24
+switchport mode access
+shutdown
+exit
+
+int range g0/1 -2
+switchport mode access
+shutdown
+end
+copy running-config startup-config
+
+
+Part1:
+Step 8:
+S1:
+
+int f0/6
+switchport mode access
+switchport access vlan 100
+
+-- Becuase it is set as the default vlan
+
+
+Part1:
+Step 9:
+S1:
+
+int f0/5
+switchport mode trunk
+switchport trunk nativ vlan 1000
+switchport trunk allowed vlan 100,200,1000
+end
+copy running-config startup-config
+
+
+
+Part 2:
+Step 1:
+
+R1:
+
+ip dhcp excluded-address 192.168.1.1 192.168.1.5
+ip dhcp pool first
+network 192.168.1.0 255.255.255.192
+domain-name ccna-lab.com
+default-router 192.168.1.1
+lease 2 12 30
+
+ip dhcp excluded-address 192.168.1.97 192.168.1.101
+ip dhcp pool R2_Client_LAN
+network 192.168.1.96 255.255.255.240
+domain-name ccna-lab.com
+default-router 192.168.1.97
+end
+copy running-config startup-config
+
+
+Part 3:
+Step 1:
+
+R2:
+
+interface g0/0/1
+ip helper-address 10.0.0.1
+end
+copy running-config startup-config
